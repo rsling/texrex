@@ -9,7 +9,7 @@ units = trdata trfile trreader trhtmlstripper icudet \
   trdivdeduplicator trwriter trtenderapplication trshinglehelpers \
   trteclapplication trmetaextractor trtenetapplication trhashlist \
   trhydraapplication trcowsplitapplication trcowinterleaveapplication \
-  trnfcnormalizer trwritetools
+  trnfcnormalizer trclaraxapplication trwalkers trpoliteness trwritetools
 
 [package]
 name = texrex
@@ -25,7 +25,7 @@ targetdir= ./package/programs/$(CPU_TARGET)-$(OS_TARGET)
 [target]
 
 programs = texrex texcomm tenet tender tecl arcxi rofl hydra cowsplit \
-  cowinterleave
+  cowinterleave clarax
 
 units = trdata trfile trreader trhtmlstripper icudet \
   icuconv icuwrappers icunorm trsecondpass trcharsetconverter \
@@ -37,7 +37,7 @@ units = trdata trfile trreader trhtmlstripper icudet \
   trshinglehelpers trteclapplication trmetaextractor \
   trtenetapplication trhashlist trhydraapplication \
   trcowsplitapplication trcowinterleaveapplication trnfcnormalizer \
-  trwritetools
+  trclaraxapplication trwalkers trpoliteness trwritetools
 
 [require]
 libc=y

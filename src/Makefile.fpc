@@ -1,0 +1,46 @@
+[clean]
+units = trdata trfile trreader trhtmlstripper icudet \
+  icuconv icuwrappers icunorm trsecondpass trcharsetconverter \
+  trentityconverters fann icuregex icutypes icuutils trdata \
+  trdocumentprocessor trqueues trutilities trtexrex trdeboilerplater \
+  trsimpledocumentfilter trunicodeletterrangetokenizer trshingler \
+  trfrequencyprofiler trtypefrequencies trbloom trtextassessment \
+  trutf8validator trworker trnormalizer trgeolocator \
+  trdivdeduplicator trwriter trtenderapplication trshinglehelpers \
+  trteclapplication trmetaextractor trtenetapplication trhashlist \
+  trhydraapplication trcowsplitapplication trcowinterleaveapplication \
+  trnfcnormalizer trwritetools
+
+[package]
+name = texrex
+version = behindthecow
+
+[compiler]
+version = 1.2
+sourcedir = ./units ./programs
+unitdir= ./units ./external/internettools ./external/synapse
+unittargetdir= ./package/units/$(CPU_TARGET)-$(OS_TARGET)
+targetdir= ./package/programs/$(CPU_TARGET)-$(OS_TARGET)
+
+[target]
+
+programs = texrex texcomm tenet tender tecl arcxi rofl hydra cowsplit \
+  cowinterleave
+
+units = trdata trfile trreader trhtmlstripper icudet \
+  icuconv icuwrappers icunorm trsecondpass trcharsetconverter \
+  trentityconverters fann icuregex icutypes icuutils trdata \
+  trdocumentprocessor trqueues trutilities trtexrex trdeboilerplater \
+  trsimpledocumentfilter trunicodeletterrangetokenizer trshingler \
+  trbloom trtextassessment trutf8validator trworker trnormalizer \
+  trgeolocator trdivdeduplicator trwriter trtenderapplication \
+  trshinglehelpers trteclapplication trmetaextractor \
+  trtenetapplication trhashlist trhydraapplication \
+  trcowsplitapplication trcowinterleaveapplication trnfcnormalizer \
+  trwritetools
+
+[require]
+libc=y
+
+[install]
+fpcpackage=y

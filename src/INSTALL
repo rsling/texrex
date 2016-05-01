@@ -1,0 +1,89 @@
+
+  texrex-behindthecow - Web page cleaning tool
+  Installation information of 2015/10/10
+  Roland Schäfer <roland.schaefer@fu-berlin.de>
+  http://texrex.sourceforge.net/
+  
+
+WARNING: BETA SOFTWARE IS DANGEROUS AND CAN BREAK YOUR SYSTEM!
+         Only use it if you know how to recover a frozen system, etc.
+
+
+Starting with texrex-neuedimensionen, there are only the following
+package types
+
+a. binary only
+b. data 
+
+GeoLite databases by MaxMind are no longer included and have to be
+downloaded from http://dev.maxmind.com/geoip/legacy/geolite/. Convert
+them to UTF-8 by doing
+
+   iconv -f ISO-8859-1 -t UTF-8 INFILE > OUTFILE
+
+
+I. KNOWN PROBLEMS
+
+1. FANN error message under Linux ("Cannot set activation steepnes",
+   etc.). This is yet another locale problem. Do this (Bash variant) or
+   similar to avoid annoying conversions of commas to periods etc.:
+   
+   > export LC_ALL=C
+
+2. texrex does not work properly under MS Win, and it likely NEVER
+   WILL. If you are an EXPERIENCED FPC developer and know Windows, get 
+   in touch.
+
+3. The FPC build system chokes on my OSX system because it tries to
+   link to i386 libraries. You can solve this by passing appropriate
+   values to make:
+
+   make all OS_TARGET=darwin CPU_TARGET=x86_64
+
+II. INSTALL and RUN
+
+0. Make sure you have ICU 4.8 installed (binaries). ICU changes the
+   C symbol names with each version, so making symbolic links from 5.2
+   objects to "_48" files will not work. If this is a problem, you need
+   to re-compile texrex and create a "units/icuplatform.inc" file
+   containing the correct suffix (use "units/icuplatform.inc.tpl" as a
+   template) before compilation. Also, you need FANN (version 2 or
+   above) binaries.
+
+1. Copy the executable files to a directory in yout %PATH% (Win) or
+   $PATH (others).
+
+2. Download the data package. Put the files wherever you want them
+   and define an environment variable $TEXREXDATA to point to the
+   containing folder. Document assessment (".prof") files,
+   normalization files (".norm"), and deboilerplater networks (".net")
+   are available for Dutch, English, French, German, Spanish, Swedish.
+   Use the "Germanic" FANN for other Latin alphabet languages. I will
+   NOT add support for other than Latin alphabets.
+
+3. Download the MaxMin GeoLite City database (Legacy), convert the
+   "bocks" and the "locations" file from ISO-8859-1 to UTF-8, and put
+   the results in $TEXREXDATA. Conversion command example:
+
+   > iconv -f iso-8859-1 -t utf-8 GeoLite.csv > GeoLiteUtf.csv
+
+3. You can now use texrex from any folder on your system. The data
+   package contains a "texrex.ini" which can be put into any project
+   folder as a template for job configuration.
+   
+4. To run the texrex job defined in "texrex.ini" just do something like:
+
+   > texrex -j texrex.ini
+   
+   - or -
+   
+   > nohup texrex -j texrex.ini &
+
+5. If you run texrex in the background using nohup etc., you can talk to
+   it using the texcomm protocol/client. Lookup the process ID of the
+   mother texrex task by doing ($ is the texcomm prompt):
+
+   > texcomm
+   $ connect texrex <id>
+
+   where <id> is the process ID.

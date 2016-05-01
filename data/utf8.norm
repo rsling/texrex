@@ -1,0 +1,188 @@
+# Define texrex-hyperhyper normalization rules here.
+# The rules are simple x -> y rules, NOT regular expressions.
+#
+# Separate LHS and RHS using tab (#9).
+# The codepoint #9 itself cannot be replaced as a consequence of this
+# format.
+#
+# This mechanism is inefficient for large tables and longer strings.
+# Consider using a separate normalizer for more complex normalization.
+#
+# Do not replace *to* XML entities, because at the stage (in texrex)
+# where this applies, text is assumed to be free of entities. However,
+# you can replace to " ' & < > because conversion to strict XML will
+# later convert them to XML entities.
+
+# Heuristic fix of broken UTF8 (letters)
+Ã€	À
+Ã 	à
+Ã	Á
+Ã¡	á
+Ã‚	Â
+Ã¢	â
+Ã„	Ä
+Ã¤	ä
+Ã…	Å
+Ã¥	å
+
+Ãˆ	È
+Ã̈	è
+Ã‰	É
+Ã©	é
+ÃŠ	Ê
+Ãª	ê
+
+ÃŒ	Ì
+Ã¬	ì
+Ã	Í
+Ã­	í
+ÃŽ	Î
+Ã®	î
+Ã	Ï
+Ã̄	ï
+
+Ã™	Ù
+Ã¹	ù
+Ãš	Ú
+Ãº	ú
+Ã›	Û
+Ã»	û
+Ãœ	Ü
+Ã¼	ü
+
+Ã’	Ò
+Ã²	ò
+Ã“	Ó
+Ã³	ó
+Ã”	Ô
+Ã´	ô
+Ã–	Ö
+Ã¶	ö
+Ã˜	Ø
+Ã¸	ø
+
+Ã	Ý
+Ã½	ý
+
+Å¸	Ÿ
+Ã¿	ÿ
+
+Ã‘	Ñ
+Ã±	ñ
+
+Ã†	Æ
+Ã¦	æ
+
+Å’	Œ
+Å“	œ
+
+Ã‡	Ç
+Ã§	ç
+
+ÃŸ	ß
+
+Ã	Ð
+Ã°	ð
+
+Ãž	Þ
+Ã¾	þ
+
+Å½	Ž
+Å¾	ž
+
+Å 	Š
+
+
+# Heuristic fix of broken UTF8 (non-letters)
+Â£	£
+â‚¬	€
+â€š	‚
+â€ž	„
+â€	„
+â€¦	...
+â€	†
+â€¡	‡
+Ë†	ˆ
+â€°	‰
+â€¹	‹
+â€˜	‘
+â€™	’
+â€œ	“
+â€	”
+â€¢	•
+â€“	–
+â€”	—
+Ëœ	˜
+â„¢	™
+â€º	›
+Â¢	¢
+Â£	£
+Â¤	¤
+Â¥	¥
+Â¦	¦
+Â§	§
+Â©	©
+Âª	ª
+Â¬	¬
+Â«	«
+Â®	®
+Â°	°
+Â±	±
+Â²	²
+Â³	³
+Â´	´
+Âµ	µ
+Â¶	¶
+Â·	·
+Â¹	¹
+Âº	º
+Â»	»
+Â¼	¼
+Â½	½
+Â¾	¾
+Â¿	¿
+Â¡	¡
+
+Ã—	×
+Ã·	÷
+
+
+# Reductions / non-canonical decompositions
+
+# Dashes and hyphens
+‐	-
+‑	-
+‒	-
+–	-
+—	-
+―	-
+−	-
+
+# Single quotes
+´	'
+`	'
+‘	'
+’	'
+‚	'
+‛	'
+′	'
+‵	'
+
+# Double quotes
+“	"
+”	"
+„	"
+‟	"
+″	"
+‶	"
+
+# Custom non-NFC decomposition of Latin ligatures
+ﬀ	ff
+ﬃ	ffi
+ﬄ	ffl
+ﬁ	fi
+ﬂ	fl
+
+# Dots
+…	...
+

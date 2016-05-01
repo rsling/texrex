@@ -1,0 +1,1478 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage{setspace}
+\usepackage{mathptmx}
+\usepackage[scaled=.90]{helvet}
+\usepackage{courier}
+\usepackage[round]{natbib}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{color}
+\usepackage{colortbl}
+\usepackage[bookmarks, pdftitle=texrex tools - User's Manual, pdfauthor=Roland Schäfer, colorlinks=true, breaklinks=true, linktocpage, linkcolor=blue, citecolor=red, urlcolor=blue]{hyperref}
+\usepackage{url}
+\usepackage{breakurl}
+\usepackage{graphicx}
+\usepackage{boxedminipage}
+\usepackage{verbatim}
+\usepackage{natbib}
+\usepackage{amsmath}
+
+\newcommand{\Maro}[1]{\marginpar{\tiny\texttt{#1}}}
+\definecolor{lightgray}{rgb}{.9,.9,.9}
+
+\newenvironment{bx}
+{
+  \begin{center}
+  \begin{boxedminipage}[h]{0.9\textwidth}
+  \small
+}
+{
+  \end{boxedminipage}
+  \end{center}
+}
+
+
+\newcommand{\trthis}{\texttt{texrex}}
+
+\author{Roland Schäfer\\[1ex](Freie Universität Berlin)}
+\title{\Huge\textbf{\trthis}\\\Large\vspace{1cm}User's Manual}
+\date{Release: \texttt{texrex-neuedimensionen}\\[1ex]Manual date: 2014/23/06}
+
+
+\begin{document}
+
+\maketitle
+
+\thispagestyle{empty}
+\vspace{8cm}
+\begin{center}
+  \footnotesize
+  \textbf{\trthis}\ is designed and used for the COW project\\
+  \url{http://www.corporafromtheweb.org/}\\
+  \vspace{1cm}
+  This work is licensed under a\\
+  Creative Commons\\
+  \href{http://creativecommons.org/licenses/by-nc-sa/3.0/}{Attribution-NonCommercial-ShareAlike 3.0 Unported License}.\\
+\end{center}
+
+\pagebreak
+\clearpage\pagenumbering{roman}
+
+\tableofcontents
+\pagebreak
+
+\section*{Author}
+
+The author of the software and the manual is \href{http://www.rolandschaefer.net/}{Roland Schäfer} of Freie Universität Berlin.
+Contact him by email: \url{mail@rolandschaefer.net}.
+
+\section*{Acknowledgments}
+
+Development of \texttt{texrex} and the \texttt{texrex} data would have been impossible with the help\slash support of: Felix Bildhauer, Sarah Dietzfelbinger, Lea Helmers, Stefan Müller at Freie Universität Berlin.
+The GNU\slash Linux support group at the Zedat data center (Robert Schüttler, Holger Weiss, and others) greatly helped by maintaining the infrastructure for the project.
+Finally, the FreePascal developers (especially Florian Klämpfl and Jonas Maebe on compiler development) supply the world with free development tools without which the work would have taken much longer.
+
+\section*{The name}
+
+Why is it called \texttt{texrex}?
+The answer is that it grew out of a very simple HTML stripper which I wrote called \texttt{tex} for \texttt{text extractor}.
+First of all, I noticed after a day that that name was taken.
+Furthermore, I added boilerplate and text quality detection capabilities, etc.
+Thus, it is now rather a \texttt{\textbf{tex}t \textbf{r}ecognizer and \textbf{ex}tractor}, or \texttt{texrex}.
+All other names of tools (like \texttt{tender}) were derived by shortening \texttt{texrex}, then adding more acronym letters.
+
+The current release name \texttt{neuedimensionen} is a reference to Techno Bert's classic \textit{Neue Dimensionen}, released on vinyl in 1990, when I was still a child.\footnote{\url{http://www.discogs.com/release/57994}}
+At the time, I was persistently failing in my attempts to write an open-source database application for the Amiga OS while teaching myself OOP.
+
+\section*{Background}
+
+The research behind \trthis\ was described in \cite{Schaefer-Bildhauer2012a,SchaeferEa2013,Schaefer2014}.
+The general methodology is also described in \cite{SchaeferBildhauer2013}.
+
+\pagebreak
+\clearpage\pagenumbering{arabic}
+
+\section{Purpose}\label{sec:purpose}
+
+The primary purpose of the \texttt{texrex} tools is to create ad-hoc text-only corpora from large crawl archives, such as Heritrix ARC files.
+It fills the gap between the crawler and the tools for the linguistic processing of the corpus (tokenizer, tagger, lemmatizer, etc.).
+
+\vspace{0.5cm}
+
+\textbf{First (with \texttt{texrex}):}
+
+\begin{enumerate}
+  \item strip HTML,
+  \item convert all documents to UTF-8 (using ICU),
+  \item convert all kinds of HTML entities to UTF-8 encoded unicode codepoints,
+  \item insert ``paragraph'' boundaries (actually called ``divisions'' or \texttt{<div>}) into the output,
+  \item detect paragraphs which do not contain usable text but just boilerplate material (like menus, tag clouds, copyright notices, etc.),
+  \item filter documents which are not written in the target language by examining the distribution of the most frequent words in the document (some pre-generated profiles included),
+  \item detect perfect duplicates by a simple fingerprinting algorithm
+  \item check UTF-8 well-formedness,
+  \item apply normalization by customizable replacement tables,
+  \item generate w-shingle-based fingerprints of all documents,
+  \item extract out links from web pages for graph analysis,
+  \item lookup IP geolocation information.
+\end{enumerate}
+
+\vspace{0.5cm}
+
+\textbf{Then (with \texttt{tender} and \texttt{tecl}):}
+
+\begin{enumerate}
+  \item calculate document similarities based on the w-shingle fingerprints,
+  \item remove near-duplicate documents from the corpus.
+\end{enumerate}
+
+As opposed to older versions, \trthis\ ships with an ARC file reader.
+In order to read other formats, other reader classes have to be implemented.
+This should take no more than one working day per reader.
+
+\textbf{Additional tools included are:}
+
+\begin{enumerate}
+  \item \textbf{\texttt{tenet}}, a FANN neural network trainer,
+  \item \textbf{\texttt{HyDRA}} (\textbf{Hy}phenation \textbf{Detection} and \textbf{R}emoval \textbf{A}pplication), a tool to detect hard-hyphenation and fix it, based on unigram frequencies. Specially adapted for German,
+  \item \textbf{\texttt{rofl}} (\textbf{r}un-\textbf{o}n \textbf{f}ixer \textbf{l}ab), a tool to fix run-together sentences based on word lists.
+\end{enumerate}
+
+\section{Compilation and installation}
+
+You can do a fresh compile with the FreePascal compiler (FPC), version 2.6.0 or above, which itself requires no setup beyond the automated installation procedures.\footnote{\url{http://www.freepascal.org/}}
+However, binary packages might be provided for your platform.
+
+\subsection{Prerequisites}
+
+The following libraries/tools have to be installed.
+
+\begin{enumerate}
+  \item FreePascal 2.6.0 or above (and its dependencies) -- This is required \textbf{only for compilation}.
+  \item libfann 2.1 or above (binaries)
+  \item libicu 4.x or above (binaries) -- If you use binary releases, the version number must match \textbf{exactly}, and creating ``versioned'' symbolic links will not suffice.
+\end{enumerate}
+
+Notice that \trthis\ comes with its own headers\slash bindings for those libraries, such that \textit{dev} (=~header) packages are not required for compilation.
+
+\subsection{Compilation}
+
+Current distribution files can be obtained from the \texttt{texrex} web site.\footnote{\url{http://sourceforge.net/projects/texrex/}}
+First, unpack the source package.
+Makefiles are generated with \texttt{fpcmake}.
+Normally, just go to the root folder of the distribution package (where \texttt{Makefile} and \texttt{Makefile.fpc} are) and type:
+
+\begin{bx}
+\begin{verbatim}
+make clean all
+\end{verbatim}
+\end{bx}
+
+If that does not work, the \texttt{Makefile} probably needs to be refreshed, which works only with \texttt{fpcmake} installed.
+\texttt{fpcmake} requires the \texttt{fpc} sources and an environment variable \texttt{FPCDIR} pointing to the sources.
+In this case, type:
+
+\begin{bx}
+\begin{verbatim}
+fpcmake && make clean all
+\end{verbatim}
+\end{bx}
+
+% TODO Add for (at least) MacOS with libs installed from MacPorts:
+% export LIBDIR=/opt/local/lib
+% make all OS_TARGET=darwin CPU_TARGET=x86_64
+
+\subsection{Installation}
+
+\subsubsection{After Compilation}
+
+Installation after compilation should work on all platforms by typing, given you have the appropriate rights:
+
+\begin{bx}
+\begin{verbatim}
+make install
+\end{verbatim}
+\end{bx}
+
+\subsubsection{From binary release}
+
+You only have to make sure the binaries are in your \texttt{PATH}, or that you specify the path to them fully.
+There is no installation procedure as such.
+
+\subsubsection{Additional settings and the data files}
+
+In addition, you can also create an environment variable \texttt{TEXREXDATA}, which must point to a directory containing FANN network files (Section~\ref{sec:deboilerplater}), language profiles (Section~\ref{sec:textassessment}), normalizer rule files (Section~\ref{sec:normalizer}), and the IP geolocation database (Section~\ref{sec:geolocator}).
+If such a folder is specified by the \texttt{TEXREXDATA} variable (and if it exists), the \texttt{texrex} tools look for such files relative to this directory first.
+If it is not specified or the files are not there, the programs will look for them relative to the execution directory, unless an absolute path is given.
+Note that some distribution packages contains language profiles and network files in the sub-folder \texttt{data}.
+There are also binary-only packages, for which all data files need to be downloaded separately from the SourceForge site.
+\textbf{The large IP geolocation database must be downloaded separately from the Maxmind homepage.}
+
+\subsubsection{Compiling FANN network files}
+
+The \trthis\ distribution contains \texttt{.net} FANN multi-layer perceptron networks to be used with the deboilerplater (\ref{sec:deboilerplater}).
+If they do not work (for example because the installed FANN version does not match exactly the one used to compile the distribution), then the \texttt{.dat} files have to be used to train FANN networks.
+The aforementioned \texttt{data} folder contains some pre-packaged \texttt{.dat} and \texttt{.net} files.
+To train networks, execute the following command (or similar, depending on the choice of \texttt{.dat} file) there:
+
+\begin{bx}
+\begin{verbatim}
+tenet boilerplate.iso.dat boilerplate.iso.net
+\end{verbatim}
+\end{bx}
+
+This will compile the FANN network file in format compatible to your version of the FANN library.
+
+\section{Using \trthis}
+
+\subsection{Basic architecture}
+
+\trthis\ is designed for powerful single machines.
+More cores mean better performance.
+Hard disk performance becomes critical only if you have a lot of cores and want to use them.
+RAM requirements are modest, especially with deduplication turned off.
+Deduplication uses a scaling Bloom filter, which will roughly use 100 MB of RAM for 20 million adds at very low desired error rates such as $10^{-6}$.\footnote{Cf.\ \cite{Bloom1970,BroderMitzenmacher2004,AlmeidaEa2007}.
+Scaling Bloom filters are slightly slower than static Bloom filters, but they do not require a priori memory allocation according to an expected number of members and a desired error rate.}
+
+\trthis\ uses three thread ``pools'', which are technically speaking not true pools but rather simple collections of minimally managed threads.
+The threads interact with two queues.
+The overall data structure which is exchanged between threads via queues are of class type \texttt{TTrDocument} defined in \texttt{trdata.pas}.
+
+\paragraph{Queues}
+
+\begin{enumerate}
+  \item The \texttt{InQueue} receives virtually unprocessed documents with a buffer containing the raw HTML data of a web page from the reader threads.
+    They are then popped by worker threads.
+  \item The \texttt{OutQueue} receives fully processed documents from the workers.
+    They are then popped by writer threads.
+\end{enumerate}
+
+\paragraph{Thread collections}
+
+\begin{enumerate}
+  \item The reader threads read ARC files and split them into documents, buffering the raw HTML in a \texttt{TTrDocument} object.
+    They also extract some meta information (Last-Modified, crawl time, position in the ARC file, etc.)
+  \item The worker threads strip HTML and perform all the other processing to produce a clean corpus document.
+  \item The writer threads format the processed documents into XML.
+    They also write shingles and links to separate files.
+\end{enumerate}
+
+A single logger thread is also instantiated, which periodically reads, analyzes and logs (to a separate file) the activity of \trthis.
+
+\subsection{Running \trthis}
+
+Running a \trthis\ job is very simple.
+An INI file (say, \texttt{job.ini}) specifying the job options is required (cf.\ \ref{sec:conf}), and \trthis\ can then be run using any of these two:
+
+\begin{bx}
+\texttt{texrex -j job.ini}\\
+\texttt{texrex -{-}job=job.ini}\
+\end{bx}
+
+If the configuration is OK, \trthis\ will run until the input is exhausted or the user shuts it down.
+Minimal startup information is printed on \texttt{stdout}.
+Minimal information about threads and queues is printed continuously, unless silent mode is activated (cf.\ \ref{sec:conf}).
+
+Shutdown and other interactions with the running process can and should be achieved by using \texttt{texcomm} (cf.\ \ref{sec:texcomm}).
+Specifically, shutting down by pressing Ctrl+C is neither possible nor recommended.
+Also, using \texttt{kill} or similar commands to shutdown \trthis\ is usually not necessary, because all processing is done in separate threads, and \texttt{texcomm} runs in the main thread, almost always allowing for graceful termination (unless you encounter a bug, of course).
+
+If the \texttt{[TTrApplication] Debug} option is set to \texttt{1}, then \trthis\ emits warnings about exceptions on \texttt{stderr}.
+If you want to catch this information, it might be best to start the program like this (routing \texttt{stderr} to a file, here \texttt{debug.log}), so \texttt{stderr} messages do not interfere with console operation:
+
+\begin{bx}
+\texttt{texrex -j job.ini 2> debug.log }
+\end{bx}
+
+\subsection{Job configuration}
+\label{sec:conf}
+
+\trthis\ jobs are configured via an INI file with sections and options.
+Each section corresponds to a Pascal class instantiated by \texttt{texrex}, and each option specifies a value for a published property of this class.
+Values are given after an equals sign (=).
+Booleans are specified as \texttt{0} for \textit{false} or \texttt{1} for \textit{true}, and strings should be quoted, like so:
+
+\begin{bx}
+\texttt{JobName="mywebcorpus"}
+\end{bx}
+
+The options are as follows, organized by sections.
+
+\subsubsection{\texttt{[TTrApplication]}}
+\label{sec:application}
+
+This section configures the core parameters of the application.\\
+
+\noindent\textbullet~\texttt{JobName=<STRING>}\\
+
+Name for the processing job, which can be chosen freely.
+The log file will use this as a prefix.\\
+
+\noindent\textbullet~\texttt{Comment=<STRING>}\\
+
+A comment to be chosen freely.
+Use it to remind yourself what this job was for, for example. \\
+
+\noindent\textbullet~\texttt{Silent=<BOOLEAN>}\\
+
+If \texttt{0}, \trthis\ displays startup messages and later the queue fill status and the thread numbers continuously while the job is running.
+If \texttt{1}, it does a silent run with no output on \texttt{stdout} except error messages if command line options are incorrect.\\
+
+\noindent\textbullet~\texttt{InQSize=<INTEGER>}\\
+
+Maximal number of documents (capacity) which the queue between the reader threads and the worker threads can hold.
+Since memory requirements are modest, and since reader threads read faster than worker threads can process them, this can usually be quite a high value, say 100,000 (but specify it without the thousand separator).\\
+
+\noindent\textbullet~\texttt{OutQSize=<INTEGER>}\\
+
+Maximal number of documents (capacity) which the queue between the worker threads and the writer threads can hold.
+Since writers are much faster than workers, this queue will ususally not fill above 100.\\
+
+\noindent\textbullet~\texttt{WorkerManagement=<BOOLEAN>}\\
+
+If \texttt{1}, the number of worker threads is controlled automatically, depending on the fill status of the InQueue.
+This is a very simple mechanism which increases\slash reduces the worker thread count to keep the InQueue within a certain quartile of its capacity.\\
+
+\noindent\textbullet~\texttt{ManagementInterval=<INTEGER>}\\
+
+The queue management (if active) checks the fill status of the InQueue at certain intervals.
+This option specifies the interval in seconds.
+Ineffective if worker management is off.\\
+
+\noindent\textbullet~\texttt{PreferedInQueueQuartile=<1|2|3|4>}\\
+
+The quartile of the capacity of the InQueue within which the worker management should try to keep the fill status.
+Ineffective if worker management is off.\\
+
+\noindent\textbullet~\texttt{StatsInterval=<INTEGER>}\\
+
+The interval in seconds at which the status of the system should be written to the log file.
+For huge production runs, anything below 60 should not be very informative.\\
+
+\noindent\textbullet~\texttt{Debug=<BOOLEAN>}\\
+
+If \texttt{1}, then exceptions and other serious errors\slash warnings are reported on \texttt{stderr}.
+
+\subsubsection{\texttt{[TTrArcReaderPool]}}
+\label{sec:arcreaderpool}
+
+This section configures the thread collection which reads the raw ARC data from ARC files.
+Reading gzipped files happens automatically.
+With the original Heritrix gzip format, you need to specify an external gzip path, cf.\ below.\\
+
+\noindent\textbullet~\texttt{ExternalGzipPath=<STRING>}\\
+
+The exact path to your \texttt{gzip} executable.
+If set, the specified external \texttt{gzip} is used instead of the internal gzip decompression.
+It must accept the \texttt{-c -d} option setting for piping uncompressed output to texrex.
+When Heritrix ARC files are processed, this is recommended, because the internal code cannot deal with multi-record gzip files as produced by Heritrix.\\
+
+\noindent\textbullet~\texttt{FileName=<STRING>}\\
+
+The file name mask of the input ARC files.
+Use wildcards to specify as many ARC files as you want.
+If you specify a directory, all files in that directory will be used.\\
+
+\noindent\textbullet~\texttt{MinDocSize=<INTEGER>}\\
+
+The minimal raw HTML document size in KB below which documents are discarded right away.
+Many crawled documents, like soft 404s, are too small to be of any value.\\
+
+\noindent\textbullet~\texttt{MaxDocSize=<INTEGER>}\\
+
+The maximal raw HTML document size above which documents are discarded right away.
+You should configure your crawler to filter documents above, say, 256 or 512 KB.
+If you have \textbf{not} done that, use this option.
+Even 100 MB gzipped ARC files can contain documents several unzipped GB large, and such documents really do exist.\\
+
+\noindent\textbullet~\texttt{ReaderNumber=<INTEGER>}\\
+
+The number of reader threads to be instantiated.
+Usually, a single reader can feed more than ten workers without queue starvation.\\
+
+\noindent\textbullet~\texttt{DocumentBufferSize=<INTEGER>}\\
+
+To minimize push\slash pop collisions on the queue, reader threads buffer a number of documents before they push all of them onto the queue.
+Use this to set this number.\\
+
+\noindent\textbullet~\texttt{RetryWait=<INTEGER>}\\
+
+How long (in milliseconds) a reader waits after a collision before trying to push again.\\
+
+\noindent\textbullet~\texttt{CrawlHeaderExtract=<STRING>}\\
+
+In the ARC file format, the HTML dump of the crawled page is preceded by HTTP headers.
+This allows you to extract values of such headers.
+Each desired header name (case-insensitive) is given, separated by a pipe |.
+To extract \textit{Last-Modified} and \textit{Date}, for example, specify this:
+
+\begin{center}
+  \texttt{CrawlHeaderExtract="Last-Modified|Date"}
+\end{center}
+
+The headers are stored as meta values and can be written by properly specifying \texttt{WriteDocAttr} and \texttt{WriteDocMeta} later in the \texttt{TTrWriterPool} section.
+
+\subsubsection{\texttt{[TTrWorkerPool]}}
+\label{sec:workerpool}
+
+This section configures the processing chain and the worker threads which perform the processing.
+The first block switches certain processors on or off.
+If this leads to an impossible configuration (because some processors require others to operate first in order to work properly), this will currently only manifest itself when single documents hit the respective processor, emitting numerous ``pre-condition not met'' messages on \texttt{stderr}.
+Always test your configuration on small sample files.\\
+
+\noindent\textbullet~\texttt{UseDuplicateDetector=<BOOLEAN>}\\
+\noindent\textbullet~\texttt{UseSimpleFilter=<BOOLEAN>}\\
+\noindent\textbullet~\texttt{UseUtf8validator=<BOOLEAN>}\\
+\noindent\textbullet~\texttt{UseDeboilerplater=<BOOLEAN>}\\
+\noindent\textbullet~\texttt{UseTextAssessment=<BOOLEAN>}\\
+\noindent\textbullet~\texttt{UseShingler=<BOOLEAN>}\\
+\noindent\textbullet~\texttt{UseNormalizer=<BOOLEAN>}\\
+\noindent\textbullet~\texttt{UseDivDeduplicator=<BOOLEAN>}\\
+\noindent\textbullet~\texttt{UseMetaExtractor=<BOOLEAN>}\\
+\noindent\textbullet~\texttt{UseGeolocator=<BOOLEAN>}\\
+
+All the above activate the respective processor if set to \texttt{1}.\\
+
+\noindent\textbullet~\texttt{GeoBlocksFile=<STRING>}\\
+
+Name of the IP geolocation blocks database.
+The file can be located relative to the \texttt{TEXREXDATA} directory, relative to the execution directory, or it has to be specified in the form of an absolute path name.
+Loading it will take a few seconds on startup.
+Ignored if \texttt{UseGeolocator=0}.\\
+It is no longer included, because we can now read the original file format.
+Get the files directly from
+
+\begin{center}
+  \url{http://dev.maxmind.com/geoip/legacy/geolite/}
+\end{center}
+
+You need the \textbf{Legacy GeoLite City} database, and the file to be specified here is usually called \textit{GeoLiteCity-Blocks.csv}.
+Unpack it and \textbf{convert it from ISO-8859-1 to UTF-8}, for example with \texttt{iconv}.\\
+
+\noindent\textbullet~\texttt{GeoLocationsFile=<STRING>}\\
+
+Name of the IP locations database.
+The file can be located relative to the \texttt{TEXREXDATA} directory, relative to the execution directory, or it has to be specified in the form of an absolute path name.
+Loading it will take a few seconds on startup.
+Ignored if \texttt{UseGeolocator=0}.\\
+It is no longer included, because we can now read the original file format.
+Get the files directly from
+
+\begin{center}
+  \url{http://dev.maxmind.com/geoip/legacy/geolite/}
+\end{center}
+
+You need the \textbf{Legacy GeoLite City} database, and the file to be specified here is usually called \textit{GeoLiteCity-Location.csv}.
+Unpack it and \textbf{convert it from ISO-8859-1 to UTF-8}, for example with \texttt{iconv}.\\
+
+\noindent\textbullet~\texttt{WorkerNumber=<INTEGER>}\\
+
+The number of worker threads.
+Memory is usually not an issue, so at least one thread per physical core is reasonable.
+The whole system performances hinges mainly on this setting.
+The more, the merrier.\\
+
+\noindent\textbullet~\texttt{MaxWorkerNumber=<INTEGER>}\\
+
+If thread management is on, this specifies the maximal number of threads \trthis\ will ever run.
+It cannot be overridden at runtime, neither by worker management, nor from the \texttt{texcomm} console (even in god mode).\\
+
+\noindent\textbullet~\texttt{MinWorkerNumber=<INTEGER>}\\
+
+If thread management is on, this specifies the minimal number of threads \trthis\ will ever run after the job was started.
+It cannot be overridden at runtime, neither by worker management, nor from the \texttt{texcomm} console.\\
+
+\noindent\textbullet~\texttt{BufferSize=<INTEGER>}\\
+
+Same as \texttt{BufferSize} for the \texttt{TTrArcReaderPool}.\\
+
+\noindent\textbullet~\texttt{PopSleep=<INTEGER>}\\
+
+The number of milliseconds a worker thread waits if popping from the InQueue resulted in a collision.\\
+
+\noindent\textbullet~\texttt{PushSleep=<INTEGER>}\\
+
+The number of milliseconds a worker thread waits if pushing to the OutQueue resulted in a collision.\\
+
+\noindent\textbullet~\texttt{PushLimit=<INTEGER>}\\
+
+The number of push retries before the thread gives up.
+This should never happen, and this is a debugging option which you should leave alone or set to extremely high values, like 999999999.\\
+
+\noindent\textbullet~\texttt{BloomErrorRate=<REAL>}\\
+
+The worker pool initializes the Scaling Bloom filter for the deduplicator.
+This specifies the desired error (false positive) rate, usually something like 0.000001.\\
+
+
+\subsubsection{\texttt{[TTrWriterPool]}}
+\label{sec:writerpool}
+
+This section configures the writer threads and defines the form of the XML output of the final corpus documents.\\
+
+\noindent\textbullet~\texttt{WriterNumber=<INTEGER>}\\
+
+The number of writer threads.
+Usually, one writer can handle the output of at least 10 worker threads.\\
+
+\noindent\textbullet~\texttt{PopSleep=<INTEGER>}\\
+
+The number of milliseconds a writer thread waits if popping from the OutQueue resulted in a collision.\\
+
+\noindent\textbullet~\texttt{BufferSize=<INTEGER>}\\
+
+Same as \texttt{BufferSize} for \texttt{TTrArcReaderPool}.\\
+
+\noindent\textbullet~\texttt{StrictXml=<BOOLEAN>}\\
+
+If this is \texttt{1}, then the writer will replace protected XML characters with entities (i.\,e., \texttt{"} becomes \texttt{\&quot;}, etc.).
+This is highly recommended if well-formed XML is required.\\
+
+\noindent\textbullet~\texttt{XmlHeader=<BOOLEAN>}\\
+
+If 1, the writer writes a standard compliant XML header for each output file (including an \texttt{<xml></xml>} container).
+This causes problems with certain uses of \texttt{tender} and \texttt{tecl} and should not be used, if possible.\\
+
+\noindent\textbullet~\texttt{Prefix=<STRING>}\\
+
+Output file name prefix.
+\textbf{No} wildcards.\\
+
+\noindent\textbullet~\texttt{WriteDocMeta=<STRING>}\\
+
+A pipe-separated list of meta information that should be written after the \texttt{<doc>} tag in the form of \texttt{<meta name="" value="">} tags.
+Currently, \trthis\ gathers the following meta information:
+
+\begin{center}
+  \texttt{arcfile|arcoffset|arclength|mime|size}
+\end{center}
+
+If TARC files are written, then
+
+\begin{center}
+  \texttt{tarcfile|tarcheaderoffset|tarcbodyoffset|\\
+  tarcheaderclength|tarcbodylength} 
+\end{center}
+
+are available for indexing the TARC files (cf.\ \texttt{TTrWriterPool}).
+TARC files are like Heritrix ARC files without the header, i.\,e., they contain only single ARC file records.
+Also, HTML is dumped in one line, and all line feeds from the original HTML document are lost.
+
+If the MetaExtractor is switched on, then
+
+\begin{center}
+  \texttt{title|keywords}
+\end{center}
+
+are available if configured (cf.\ \texttt{TTrMetaExtractor}).
+
+If the Geolocator is switched on, then
+
+\begin{center}
+  \texttt{country|region|city}
+\end{center}
+
+are available if configured (cf.\ \texttt{TTrGeolocator}).
+The meta tag is only written if the respective information is stored for the document.\\
+
+\noindent\textbullet~\texttt{WriteDocAttr=<STRING>}\\
+
+Like \texttt{WriteDivMeta}, but the information is written as attributes to the \texttt{<doc>} tag in the form \texttt{name="value"}.
+It is always written, and if the respective meta value is not set for a document, \texttt{\_unk\_} is inserted.\\
+
+\noindent\textbullet~\texttt{WriteDivMeta=<STRING>}\\
+
+Same as \texttt{WriteDocMeta} for divisions.
+Currently unused.\\
+
+\noindent\textbullet~\texttt{WriteDivAttr=<STRING>}\\
+
+Same as \texttt{WriteDocAttr} for divisions.
+Currently unused.\\
+
+\noindent\textbullet~\texttt{WriteText=<BOOLEAN>}\\
+
+If \texttt{1}, \trthis\ writes the actual stripped text of the divisions.
+Setting this to \texttt{0} only makes sense for debugging purposes.\\
+
+\noindent\textbullet~\texttt{WriteBpc=<BOOLEAN>}\\
+
+If \texttt{1}, the boilerplate class is written to the \texttt{<div>} tag as an attribute \texttt{bpc="x"}, where \texttt{x} is a letter from \texttt{a}, which means that the boilerplate level is in $(-1,0)$ to \texttt{k}, which means that the boilerplate level is in $(0.9,1)$.\\
+
+\noindent\textbullet~\texttt{WriteBpv=<BOOLEAN>}\\
+
+If \texttt{1}, \trthis\ writes the boilerplate value calculated by the MLP to the \texttt{<div>} tag as an attribute \texttt{bpv="r"}, where \texttt{r} is a real.\\ 
+
+\noindent\textbullet~\texttt{WriteBdc=<BOOLEAN>}\\
+
+If \texttt{1}, the badness class is written to the \texttt{<doc>} tag as \texttt{bdc="x"}, where \texttt{x} is a letter from \texttt{a} to the $n$-th letter of the alphabet, and the corresponding badness score is in $(n\times2-2,n\times2]$.\\
+
+\noindent\textbullet~\texttt{WriteBdv=<BOOLEAN>}\\
+
+If \texttt{1}, the badness score is written to the \texttt{<doc>} tag as \texttt{bpv="r"}, where \texttt{r} is a real.\\ 
+
+\noindent\textbullet~\texttt{WriteNonBoilerplateDivCount=<BOOLEAN>}\\
+
+If \texttt{1}, the count of non-boilerplate \texttt{<div>} in the document is written to the \texttt{<doc>} tag as \texttt{nbd="i"}, where \texttt{i} is an integer.\\
+
+\noindent\textbullet~\texttt{WriteNonBoilerplateCharCount=<BOOLEAN>}\\
+
+If \texttt{1}, the count of non-boilerplate characters is written to the \texttt{<doc>} tag as \texttt{npc="i"}, where \texttt{i} is an integer.\\
+
+\noindent\textbullet~\texttt{WriteNonBoilerplateDivProportion=<BOOLEAN>}\\
+
+If \texttt{1}, the proportion of non-boilerplate \texttt{<div>} in the document is written to the \texttt{<doc>} tag as \texttt{nbdprop="r"}, where \texttt{r} is a real.\\
+
+\noindent\textbullet~\texttt{WriteNonBoilerplateCharProportion=<BOOLEAN>}\\
+
+If \texttt{1}, the proportion of non-boilerplate characters is written to the \texttt{<doc>} tag as \texttt{nbcprop="r"}, where \texttt{r} is a real.\\
+
+\noindent\textbullet~\texttt{WriteAverageBoilerplateCharacter=<BOOLEAN>}\\
+
+If \texttt{1}, the average boilerplate value of a character is written to the \texttt{<doc>} tag as \texttt{avbpc="r"}, where \texttt{r} is a real.\\
+
+\noindent\textbullet~\texttt{WriteAverageBoilerplateDiv=<BOOLEAN>}\\
+
+If \texttt{1}, the average boilerplate value of a \texttt{<div>} is written to the \texttt{<doc>} tag as \texttt{avbpd="r"}, where \texttt{r} is a real.\\
+
+\noindent\textbullet~\texttt{WriteDups=<BOOLEAN>}\\
+
+If \texttt{1}, then duplicate paragraphs are actually written as \texttt{<dup>}, otherwise they are silently deleted.
+This is ineffective if \texttt{TTrDuplicateDetector} is deactivated.\\
+
+\noindent\textbullet~\texttt{DupBlank=<STRING>}\\
+
+If your indexing software needs a token in order to create a region (in order to represent duplicate paragraphs), this is what will be inserted as a dummy token instead of the text of duplicate divisions.
+If you set it to \texttt{dupblank}, for example, then paragraph (= division) 23 will look like this if it is a duplicate of division 11:
+
+\begin{center}
+  \texttt{<div id="23" dup\_of="11">dupblank</div>}
+\end{center}
+
+For example, if you switch on the duplicate paragraph detector, set \texttt{WriteDups=1}, use the IMS OCWB to index your corpora, \textbf{and} you want to see the duplicate paragraph positions in your indexed corpus, you have to specify a \texttt{DupBlank}.\\
+
+\noindent\textbullet~\texttt{WriteDivMetrics=<BOOLEAN>}\\
+
+If \texttt{1}, \trthis\ writes the boilerplate metrics for each \texttt{<div>} as a \texttt{<metrics>} tag.
+Useful if you want to generate training data for \texttt{tenet} (cf.\ \ref{sec:tenet}).\\
+
+\noindent\textbullet~\texttt{WriteShingles=<BOOLEAN>}\\
+
+If set to 1, then shingles will be written to shingle files.\\
+
+\noindent\textbullet~\texttt{WriteLinks=<BOOLEAN>}\\
+
+If set to 1, then files will be created logging each \texttt{http} out link from processed pages.
+The files have the form of a four-column tab-separated file.
+The columns are:
+
+\begin{enumerate}
+  \item linking page
+  \item linked page
+  \item badness of linking page
+  \item boilerplate value of \texttt{<div>} where the link was found
+\end{enumerate}
+
+\noindent\textbullet~\texttt{WriteTokens=<BOOLEAN>}\\
+
+If a tokenizer is activated, and this is \texttt{1}, then separate files are written containing the token count profile for each document.
+You need this to create language profiles for the \texttt{TTrTextAssessment} processor.\\
+
+\noindent\textbullet~\texttt{WriteMaxTokens=<INTEGER>}\\
+
+This defines how many type-token counts are written.
+Only the top $n$ types are written, where $n$ is the integer set here.\\
+
+\noindent\textbullet~\texttt{WriteTarc=<BOOLEAN>}\\
+
+If \texttt{1}, then TARC files will be written containing the HTML dumps of those documents which are also written (in stripped form) to the XML corpus files.\\
+
+\noindent\textbullet~\texttt{SplitSizeXml=<INTEGER>}\\
+
+Set this to the number of uncompressed MB after which a corpus file should be split.\\
+
+\noindent\textbullet~\texttt{SplitSizeShingles=<INTEGER>}\\
+
+Set this to the number of uncompressed MB after which a shingle file should be split.\\
+
+\noindent\textbullet~\texttt{SplitSizeLinks=<INTEGER>}\\
+
+Set this to the number of uncompressed MB after which a link file should be split.\\
+
+\noindent\textbullet~\texttt{SplitSizeTokens=<INTEGER>}\\
+
+Set this to the number of uncompressed MB after which a token file should be split.\\
+
+\noindent\textbullet~\texttt{SplitSizeTarc=<INTEGER>}\\
+
+Set this to the number of uncompressed MB after which a TARC file should be split.\\
+
+\noindent\textbullet~\texttt{GzipXml=<BOOLEAN>}\\
+
+If \texttt{1}, compress corpus files with gzip.\\
+
+\noindent\textbullet~\texttt{GzipShingles=<BOOLEAN>}\\
+
+If \texttt{1}, compress shingle files with gzip.\\
+
+\noindent\textbullet~\texttt{GzipLinks=<BOOLEAN>}\\
+
+If \texttt{1}, compress link files with gzip.\\
+
+\noindent\textbullet~\texttt{GzipTokens=<BOOLEAN>}\\
+
+If \texttt{1}, compress token files with gzip.\\
+
+\noindent\textbullet~\texttt{GzipTarc=<BOOLEAN>}\\
+
+If \texttt{1}, compress TARC files with gzip.\\
+
+
+\subsubsection{\texttt{[TTrDuplicateDetector]}}
+\label{sec:duplicatedetector}
+
+The duplicate detector detects perfect duplicates by looking at the raw HTML.\\
+
+\noindent\textbullet~\texttt{FingerprintSize=<INTEGER>}\\
+
+Not the full document is hashed, but a string of \texttt{FingerprintSize} bytes, taken with even distances from the raw HTML.\\
+
+
+\subsubsection{\texttt{[TTrHtmlStripper]}}
+\label{sec:htmlstripper}
+
+The stripper removes markup from the raw HTML, performs splitting into divisions, and records a number of metrics for each division.\\
+
+\noindent\textbullet~\texttt{DebugParse=<BOOLEAN>}\\
+
+Emit parsing debug information (huge amounts!) on \texttt{stdout}.
+Use with \texttt{Silent=1} and pipe the output to a file.
+I cannot imagine anyone but the \trthis\ programmers needing this kind of information.
+The \texttt{DEBUGPARSE} symbol must be defined at compile time, or this won't be available.\\
+
+\noindent\textbullet~\texttt{ExtractAnchors=<BOOLEAN>}\\
+
+If \texttt{1}, links are extracted from HTML documents.\\
+
+\noindent\textbullet~\texttt{KeepSameHostLinks=<BOOLEAN>}\\
+
+If \texttt{1}, links to the same host are kept, i.\,e., links where the \texttt{vhost.host.tld} parts are identical between the addresses of the linking and the  linked document.\\
+
+\noindent\textbullet~\texttt{KeepSameVirtualHostLinks=<BOOLEAN>}\\
+
+If \texttt{1}, links to the same virtual host are kept, i.\,e., links where \texttt{host.tld} parts are identical between the addresses of the linking and the  linked document.
+
+This does not include \texttt{KeepSameHostLinks}.\\
+
+\noindent\textbullet~\texttt{KeepExternalLinks=<BOOLEAN>}\\
+
+If \texttt{1}, links to other hosts are kept.\\
+
+\noindent\textbullet~\texttt{MinimalLinkLength=<BOOLEAN>}\\
+
+How long (in characters) a link must be in order to be kept.\\
+
+\noindent\textbullet~\texttt{MaximalLinkLength=<BOOLEAN>}\\
+
+How long (in characters) a may may be in order to be kept.\\
+
+\subsubsection{\texttt{[TTrCharsetConverter]}}
+\label{sec:charsetconverter}
+
+This component uses ICU to detect encodings and convert them all to UTF-8.\\
+
+\noindent\textbullet~\texttt{Iso88591IsWin1252=<BOOLEAN>}\\
+
+Set this to 1 in order to treat all documents declared as ISO-8859-1 as Window-1252 (also known as Latin1 or ANSI).
+This is basically a very good idea, and the HTML5 standard even requires this behavior.\\
+
+
+\subsubsection{\texttt{[TTrSimpleDocumentFilter]}}
+\label{sec:simplefilter}
+
+This filter invalidates documents which are too short after HTML stripping and conversion.\\
+
+\noindent\textbullet~\texttt{DivThreshold=<INTEGER>}\\
+
+Discard documents with less than this number of divisions.\\
+
+\noindent\textbullet~\texttt{SizeThreshold=<INTEGER>}\\
+
+Discard documents with less than this number of UTF-8 characters.\\
+
+
+\subsubsection{\texttt{[TTrSecondPass]}}
+\label{sec:secondpass}
+
+This processor cleanses problematic material from the division text.
+It is required for the deboilerplater!\\
+
+\noindent\textbullet~\texttt{CleanseTags=<BOOLEAN>}\\
+
+Set to \texttt{1} to remove all literal tags (highly recommended for clean XML output).\\
+
+\noindent\textbullet~\texttt{CleanseEmail=<BOOLEAN>}\\
+
+Set to \texttt{1} to replace all email addresses by \texttt{EmailReplacer}.\\
+
+\noindent\textbullet~\texttt{CleanseUri=<BOOLEAN>}\\
+
+Set to \texttt{1} to replace many common URIs by \texttt{UriReplacer}.\\
+
+\noindent\textbullet~\texttt{CleanseHashtag=<BOOLEAN>}\\
+
+Set to \texttt{1} to replace Twitter hashtags by \texttt{HashtagReplacer}.\\
+
+\noindent\textbullet~\texttt{EmailReplacer=<STRING>}\\
+
+Cf.\ \texttt{CleanseEmail}.\\
+
+\noindent\textbullet~\texttt{UriReplacer=<STRING>}\\
+
+Cf.\ \texttt{CleanseUri}.\\
+
+\noindent\textbullet~\texttt{HashtagReplacer=<STRING>}\\
+
+Cf.\ \texttt{CleanseHashtag}.\\
+
+
+\subsubsection{\texttt{[TTrDeboilerplater]}}
+\label{sec:deboilerplater}
+
+This configures the boilerplate detector based on a Multilayer Perceptron.\\
+
+\noindent\textbullet~\texttt{TrainingMode=<BOOLEAN>}\\
+
+If \texttt{1}, then the MLP is not actually called, and all divisions receive a score of \texttt{-1}.
+This is useful when training data are generated for compiling a new MLP.
+In this case, also setting \texttt{WriteDivMetrics} in \texttt{TTrWriterPool} is necessary to output the feature values for each paragraph.\\
+
+\noindent\textbullet~\texttt{FannFile=<STRING>}\\
+
+Specify the FANN compiled network file (absolute, relative to execution path, or relative to \texttt{TEXREXDATA}).
+If you get errors like \textit{Error reading "connection\_rate" from configuration file} or similar, you need to set \texttt{LC\_ALL} to \texttt{C}.
+Under Bash, this is achieved by:
+
+\begin{center}
+  \texttt{export LC\_ALL=C}
+\end{center}
+
+\noindent\textbullet~\texttt{CustomRegex}\\
+
+If a division macthes this regex, it will be considered as boilerplate with a 1 boilerplate value.
+This is intended to mark "read more" divisions with cut off sentences at the end unequivocally as boilerplate.\\
+
+\noindent\textbullet~\texttt{Threshold=<REAL>}\\
+
+Set this threshold above which a division is marked as boilerplate.\\
+
+\noindent\textbullet~\texttt{MinDivsAboveThreshold=<INTEGER>}\\
+
+If the number of \texttt{<div>} in the document for which the boilerplate value is lower than the threshold is below this number, the document will be discarded.\\
+
+\noindent\textbullet~\texttt{MinDivProportionAboveThreshold=<REAL>}\\
+
+If the proportion of \texttt{<div>} in the document for which the boilerplate value is lower than the threshold is below this number, the document will be discarded.\\
+
+\noindent\textbullet~\texttt{MinCharsAboveThreshold=<INTEGER>}\\
+
+If the number of characters in the document for which the boilerplate value is lower than the threshold is below this number, the document will be discarded.\\
+
+\noindent\textbullet~\texttt{MinCharProportionAboveThreshold=<REAL>}\\
+
+If the proportion of characters in the document for which the boilerplate value is lower than the threshold is below this number, the document will be discarded.\\
+
+
+\subsubsection{\texttt{[TTrUnicodeLetterRangeTokenizer]}}
+\label{sec:unicodeletterrangetokenizer}
+
+This processor tokenizes documents.
+It can only handle Latin alphabets which use blanks for word separation.
+Alternative tokenizers are being developed.
+The tokenization is used by \texttt{TTrTextAssessment} and \texttt{TTrShingler}.\\
+
+\noindent\textbullet~\texttt{MaxBoilerplate=<REAL>}\\
+
+Only tokenize division which have a boilerplate value below this value.
+Keeps the tokenizer from tokenizing boilerplate.\\
+
+\noindent\textbullet~\texttt{MinLength=<INTEGER>}\\
+
+Minimum length (in UTF-8 characters) which a division must have to be tokenized.\\
+
+
+\subsubsection{\texttt{[TTrTextAssessment]}}
+\label{sec:textassessment}
+
+This processor evaluates the linguistic quality of the document and checks the target language as a by-product.
+Cf.\ \cite{SchaeferEa2013}.
+Presupposes the activation of a tokenizer.\\
+
+\noindent\textbullet~\texttt{ProfileFile=<STRING>}\\
+
+Set the name of the profile file.
+Profiles for some European languages are included in the data folder.\\
+
+\noindent\textbullet~\texttt{Threshold=<INTEGER>}\\
+
+Badness threshold above which a document is invalidated.
+The paper recommends 35.\\
+
+
+\subsubsection{\texttt{[TTrShingler]}}
+\label{sec:shingler}
+
+This processor generates the shingles for near-duplicate detection.
+Presupposes the activation of a tokenizer.\\
+
+\noindent\textbullet~\texttt{NGramSize=<INTEGER>}\\
+
+Shingles are essentially hashed token-n-grams.
+Set n here.
+Typically 5.\\
+
+\noindent\textbullet~\texttt{HashesNumber=<INTEGER>}\\
+
+How many hash functions (= random permutations) to use.
+Typically 100 or 200, the more, the better the accuracy of the process.\\
+
+
+\subsubsection{\texttt{[TTrNormalizer]}}
+\label{sec:normalizer}
+
+This processor allows users to define simple replacement rules, for example to map all UTF-8 quotes to the simple ".
+A demo replacement file is included.
+It contains comment lines beginning with \# or replacement rule lines with \texttt{INPUT <TAB> OUTPUT} lines.
+There are no regex capabilities, rules are simple replacement rules.
+For example, a rule line like this:\\
+
+\noindent\texttt{ä}\ \ \ \ \ \texttt{ae}\\
+
+\noindent (where the space between the letter groups is a literal tab) represents a context-free replacement rule \textit{ä$\longrightarrow$ae} and simply replaces all \texttt{ä} characters by the sequence \texttt{ae}.\\
+
+\noindent\textbullet~\texttt{ReplacementFile=<STRING>}\\
+
+The name of the file specifying the replacements (absolute, relative, or relative to \texttt{TEXREXDATA}).\\
+
+
+\subsubsection{\texttt{[TTrDivDeduplicator]}}
+\label{sec:divdeduplicator}
+
+This processor effectively detects and marks duplicate divisions in stripped documents.\\
+
+\noindent\textbullet~\texttt{CharacterThreshold=<INTEGER>}\\
+
+Look only at divisions which contain more UTF-8 characters than this threshold.
+It is usually useless to look at divisions with 3 or 5 characters.\\
+
+\subsubsection{\texttt{[TTrMetaExatrctor]}}
+\label{sec:metaextractor}
+
+This processor extracts the HTML document title and declared meta information.
+All meta-information is converted to UTF-8, second-pass cleansed, checked for UTF-8 validity and normalized just like paragraphs if the respective processors are switched on.\\
+
+\noindent\textbullet~\texttt{ExtractKeywords=<BOOLEAN>}\\
+
+If \texttt{1}, the HTML \texttt{<title>} element is extracted.\\
+
+\noindent\textbullet~\texttt{ExtractTitle=<BOOLEAN>}\\
+
+If \texttt{1}, the HTML \texttt{<meta name="keywords">} element is extracted.\\
+
+
+\subsubsection{\texttt{[TTrGeolocator]}}
+\label{sec:geolocator}
+
+This processor looks up the IP address of the server serving a page in a geolocation database and adds meta information.
+Albeit unusual from a user's perspective, the file location of the geolocation database has to be specified in the \texttt{TTrWorkerPool} section (cf.\ \ref{sec:workerpool}) for technical reasons.\\
+
+\noindent\textbullet~\texttt{AddCountry=<BOOLEAN>}\\
+
+Set to \texttt{1} to lookup country information.\\
+
+\noindent\textbullet~\texttt{AddRegion=<BOOLEAN>}\\
+
+Set to \texttt{1} to lookup region information.\\
+
+\noindent\textbullet~\texttt{AddCity=<BOOLEAN>}\\
+
+Set to \texttt{1} to lookup city information.\\
+
+\subsection{\texttt{texcomm}}
+\label{sec:texcomm}
+
+\texttt{texcomm} is a (stateless) protocol and a console implementation for controlling a running \trthis\ system.
+If you have access to the running process, you can drop to \texttt{texcomm (core)} directly, but using the \texttt{texcomm} IPC client is recommended.
+
+\subsubsection{\texttt{texcomm (core)}}
+
+You can invoke \texttt{texcomm} on a running \trthis\ process by pressing the \texttt{Z} key.
+Immediately, you drop to the console saying \texttt{texcomm \$}.
+There is no pager functionality.
+You can control the running process using the commands explained by entering \texttt{h} or \texttt{help}.
+Currently, this is the list of commands (long and short) and their usage:
+
+\begin{bx}
+{\scriptsize
+\begin{verbatim}
+bye           b       Exit texcomm (does not shutdown texrex).
+shutdown [M]  s [M]   Shutdown texrex. Pass magic number as M.
+                      Without M, the magic number will be shown.
+dash [force]  d [f]   Show dashboard. 'force' for fresh calculations.
+peek          p       Show a processed recent document (plain text
+                      prior to final normalization in XMLWriter).
+reader +|-    r  +|-  Add (+) or remove (-) a reader thread.
+worker +|-    wo +|-  Add (+) or remove (-) a worker thread.
+writer +|-    wr +|-  Add (+) or remove (-) a writer thread.
+inqueue N     iq N    Set 'in' queue size to N.
+outqueue N    oq N    Set 'out' queue size to N.
+manage        ma      Toggle dynamic worker management.
+conf S        c       Print (original!) configuration section S.
+                      Pass no parameter to see the list of sections.
+ident         i       Identify this server.
+silence       si      Toggle silent mode.
+help          h       Show help.
+\end{verbatim}
+}
+\end{bx}
+
+To shutdown \trthis, you need to enter \texttt{shutdown} once without an argument.
+This will give you a magic number (randomly selected at each \texttt{texrex} startup) which must be entered to actually shutdown the process.
+Since the \texttt{texcomm} protocol is stateless, there will be no further confirmation.
+Entering \texttt{shutdown} with the correct magic number shuts down \texttt{texrex} for good.
+
+\subsubsection{\texttt{texcomm (IPC)}}
+
+The IPC client supports exactly the same commands, and it connects to the server process via a platform-independent FreePascal implementation of inter-process communication.
+Once you start it by typing \texttt{texcomm}, a console comes up.
+You are not connected to a server (= running \trthis\ instance), which you can do by entering \texttt{connect texrex N}, where \texttt{N} is the process ID of the server.
+On startup, \trthis\ emits this number, or you can get it from \texttt{texcomm (core)} via the \texttt{ident} command.
+
+Using the \texttt{texcomm (IPC)} instead of \texttt{texcomm (core)} is highly recommended.
+First of all, as long as \texttt{texcomm (core)} is open, no IPC client can connect.
+Secondly and more importantly, thread management is disabled while \texttt{texcomm (core)} is running, because they are both executed in the main thread.
+This is intended behavior, but for most uses, it is not desirable.
+
+
+
+\subsection{\texttt{tenet}}
+\label{sec:tenet}
+
+\texttt{tenet} is takes FANN training data and compiles a FANN network file.
+\texttt{tenet} is controlled by command line switches and can also be used as a simple general FANN network creator, although there are much more versatile general-purpose options available.
+\texttt{tenet} was rewritten from the earlier \texttt{texnet} tool, and it now behaves as all other command-line tools from the suite.
+
+Reasonable defaults are used if no options are given, like so:
+
+\begin{bx}
+\begin{verbatim}
+tenet -i INPUT -o OUTPUT
+\end{verbatim}
+\end{bx}
+
+This will train and save a multi-layer perceptron network with the default options which worked best in our test runs.\footnote{See \url{http:http://leenissen.dk/fann/} for details of the FANN library and some artifical neural network theory.}
+Either the output file must not exist, or the \texttt{-e} option must be given.
+The defaults can be changed with the following command line options.
+
+\begin{center}\Maro{-i|-{-}input}
+\begin{verbatim}
+-i FILENAME | --input=FILENAME
+\end{verbatim}
+\end{center}
+
+Input file name.
+The file must exist.
+
+\begin{center}\Maro{-o|-{-}output}
+\begin{verbatim}
+-o FILENAME | --output=FILENAME
+\end{verbatim}
+\end{center}
+
+Output file name.
+The file must not exist, or use \texttt{-e}.
+
+\begin{center}\Maro{-e|-{-}erase}
+\begin{verbatim}
+-e | --erase
+\end{verbatim}
+\end{center}
+
+If this option is given, and the output file exists, it is erased before a new network is trained.
+
+\begin{center}\Maro{-d|-{-}desire}
+\begin{verbatim}
+-d REAL | --desire=REAL
+\end{verbatim}
+\end{center}
+
+Attempt to reach an MSE of the specified value.
+If this MSE is reached before the maximum number of epochs was trained, training is stopped anyway.
+
+\begin{center}\Maro{-r|-{-}report}
+\begin{verbatim}
+-r INTEGER | --report=INTEGER
+\end{verbatim}
+\end{center}
+
+Sets the interval (in epochs) for reports on training progress on standard out.
+
+\begin{center}\Maro{-m|-{-}maximum}
+\begin{verbatim}
+-m INTEGER | --maximum=INTEGER
+\end{verbatim}
+\end{center}
+
+Train for maximally this number of epochs.
+If the desired MSE is reached before the maximum number of epochs was trained, training is stopped anyway.
+
+\begin{center}\Maro{-I|-{-}innum}
+\begin{verbatim}
+-I INTEGER | --innum=INTEGER
+\end{verbatim}
+\end{center}
+
+Specify the number of input values (as a convenience option if tenet is used as a general-purpose network trainer).
+Notice that this number must match exactly the actual number of input values encoded in the training data.
+This option should usually not be specified for \texttt{texrex} usage, since \texttt{texrex} generates a fixed number of values by hard-coded algorithms.
+
+\begin{center}\Maro{-0|-{-}outnum}
+\begin{verbatim}
+-O INTEGER | --outnum=INTEGER
+\end{verbatim}
+\end{center}
+
+Specify the number of output values (as a convenience option if tenet is used as a general-purpose network trainer).
+Notice that this number should be the actual number of output values encoded in the training data.
+This option should usually not be specified for \texttt{texrex} usage, since \texttt{texrex} generates a fixed number of values by hard-coded algorithms.
+
+\begin{center}\Maro{-1|-{-}one}
+\begin{verbatim}
+-1 INTEGER | --one=INTEGER
+\end{verbatim}
+\end{center}
+
+Specify the number of neurons on hidden layer 1.
+Set to \texttt{0} to deactivate hidden layer 1 and all subsequent hidden layers.
+
+\begin{center}\Maro{-2|-{-}two}
+\begin{verbatim}
+-2 INTEGER | --two=INTEGER
+\end{verbatim}
+\end{center}
+
+Specify the number of neurons on hidden layer 2.
+Set to \texttt{0} to deactivate hidden layer 2 and all subsequent hidden layers.
+
+\begin{center}\Maro{-3|-{-}three}
+\begin{verbatim}
+-3 INTEGER | --three=INTEGER
+\end{verbatim}
+\end{center}
+
+Specify the number of neurons on hidden layer 3.
+Set to \texttt{0} to deactivate hidden layer 3 and all subsequent hidden layers.
+
+\begin{center}\Maro{-4|-{-}four}
+\begin{verbatim}
+-4 INTEGER | --four=INTEGER
+\end{verbatim}
+\end{center}
+
+Specify the number of neurons on hidden layer 4.
+Set to \texttt{0} to deactivate hidden layer 4 and all subsequent hidden layers.
+
+\begin{center}\Maro{-5|-{-}five}
+\begin{verbatim}
+-5 INTEGER | --five=INTEGER
+\end{verbatim}
+\end{center}
+
+Specify the number of neurons on hidden layer 5.
+Set to \texttt{0} to deactivate hidden layer 5.
+You cannot have more than 5 hidden layers with tenet.
+
+\begin{center}\Maro{-t|-{-}train}
+\begin{verbatim}
+-t STRING | --train=STRING
+\end{verbatim}
+\end{center}
+
+Specify the C name of the training algorithm to be used.\footnote{\url{http://leenissen.dk/fann/html/files/fann_data-h.html}}
+
+\begin{center}\Maro{-H|-{-}hidden}
+\begin{verbatim}
+-H STRING | --hidden=STRING
+\end{verbatim}
+\end{center}
+
+Specify the C name of the hidden activation function.\addtocounter{footnote}{-1}\addtocounter{Hfootnote}{-1}\footnotemark
+
+\begin{center}\Maro{-a|-{-}activ}
+\begin{verbatim}
+-a STRING | --activ=STRING
+\end{verbatim}
+\end{center}
+
+Specify the C name of the output activation function.\addtocounter{footnote}{-1}\addtocounter{Hfootnote}{-1}\footnotemark
+
+\begin{center}\Maro{-w|-{-}widrow}
+\begin{verbatim}
+-w | -{-}widrow
+\end{verbatim}
+\end{center}
+
+If this option is given, the network weights are \textbf{not} pre-initialized with the Widrow \& Nguyen algorithm.
+
+\begin{center}\Maro{-h|-{-}help}
+\begin{verbatim}
+-h | --help
+\end{verbatim}
+\end{center}
+
+Print help, do thing else.
+
+
+\section{The shingling helper tools}\label{sec:shingling}
+
+Shingling is a method for removing near-duplicate documents from a collection of documents \citep{Broder-ea1997}.
+In its original form, it is actually a way of clustering documents based on similarity, but the \texttt{texrex} tools use a simpler form (without clustering) for a simpler purpose.
+In essence, each document is tokenized, and then the set of unique token-\texttt{n}-grams of the document is formed.
+These \texttt{n}-grams are hashed with a 64-bit Rabin hash function (cf.\ \cite{Rabin1981}), and from each of \texttt{m} random permutations of these hashes, the minimal hash is stored in the \textbf{fingerprint} of the document.
+Notice that \texttt{tender} does not use (pseudo-)random permutations of one hash, but different Rabin hash functions based on randomly selected irreducible polynomials over \texttt{GF(2)} of degree 64.
+If \texttt{100} random permutations (different Rabin hash functions) are used, then each fingerprint consists of \texttt{100} (minimal) hash values.
+Then, without actually having to compare each document with each other document pairwise (which is not feasible with even moderately large numbers of documents), the overlap between the fingerprints is calculated.
+Finally, documents with a higher than desired overlap are removed from the corpus.
+The process is explained in \cite[p.~58ff]{SchaeferBildhauer2013}.
+
+If configured properly, \texttt{texrex} generates the shingles in the normal cleaning process.
+Then, \texttt{tender} calculates shingle overlaps and \texttt{tecl} removes the documents from the corpus.
+Both \texttt{tender} and \texttt{tecl} read gzipped input transparently without special configuration.
+
+\subsection{\texttt{tender}}
+\label{sec:tender}
+
+\texttt{tender} takes the shingles created by \texttt{texrex}, sorts them, creates doc-doc- pairs, sorts and counts those, and finally calculates similarities between documents, writing document IDs of duplicates to a blacklist file.
+It is a simple command line tool controlled by a number of flags\slash options.
+
+Use \texttt{tender -h} or \texttt{tender -{-}help} to see a short help and the default settings.
+
+\begin{center}\Maro{-i|-{-}input}
+\begin{verbatim}
+-i FILE | --input=FILE
+\end{verbatim}
+\end{center}
+
+Specify the input file name pattern (including wildcards), i.\,e., the shingle files created by \texttt{texrex}.
+If wildcards are used, the filename \textbf{must} be put in quotes.
+
+\begin{center}\Maro{-o|-{-}output}
+\begin{verbatim}
+-o FILE | --output=FILE
+\end{verbatim}
+\end{center}
+
+Specify the output file prefix (\textbf{no} wildcards).
+The names of the intermediate files and the blacklist files will begin with this prefix.
+
+\begin{center}\Maro{-b|-{-}black}
+\begin{verbatim}
+-b FILE | --black=FILE
+\end{verbatim}
+\end{center}
+
+Specify the blacklist file name pattern (including wildcards).
+Shingles from documents listed in any of the blacklist files will be completely ignored in this run (cf.\ \ref{sec:cyclicshingle}).
+If wildcards are used, the filename \textbf{must} be put in quotes.
+
+\begin{center}\Maro{-g|-{-}gzip}
+\begin{verbatim}
+-g | --gzip
+\end{verbatim}
+\end{center}
+
+Use gzip compression for output files.
+This is not required for transparent gzip input processing, which uses automatic gzip file detection.
+
+\begin{center}\Maro{-t|-{-}threads}
+\begin{verbatim}
+-t INTEGER | --threads=INTEGER
+\end{verbatim}
+\end{center}
+
+The number of sorter threads to use.
+Sorting is done in memory, so each thread needs roughly twice as much memory as required to store \texttt{-s} shingle lines (cf.\ below), which take up 64 bytes each.
+Cf.\ below for the calculations.
+
+\begin{center}\Maro{-s|-{-}size}
+\begin{verbatim}
+-s INTEGER | --size=INTEGER
+\end{verbatim}
+\end{center}
+
+How many lines to sort in one thread/file in the divide-sort-merge sorting.
+Sorting is done in memory, so if you specify a size of 1,000,000 lines to sort, and each line is 64 bytes long, you need $2*10^6*64~B\approx 122~MB$ of RAM.
+This number ``times'' the number of threads roughly estimates your worst-case total memory needs.
+
+\begin{center}\Maro{-d|-{-}ddsize}
+\begin{verbatim}
+-d INTEGER | --ddsize=INTEGER
+\end{verbatim}
+\end{center}
+
+How many lines to send to a doc-doc pair creator thread.
+This is like \texttt{-{-}size}, but the exact amount of memory needed is much harder to estimate, because it depends on the amount of duplication in the data.
+As a rule of thumb, set this to one third of \texttt{-{-}size} for similar memory requirements if your corpus contains around 50\% (near-)duplicates according to your similarity threshold.
+
+\begin{center}\Maro{-p|-{-}presort}
+\begin{verbatim}
+-p | --presort
+\end{verbatim}
+\end{center}
+
+If you use this, \texttt{tender} assumes (without checking!) that the input files are presorted, for example using \texttt{GNU sort}.
+You can even pre-merge input files to save time on the merge process.
+
+\begin{center}\Maro{-l|-{-}limit}
+\begin{verbatim}
+-l INTEGER | --limit=INTEGER
+\end{verbatim}
+\end{center}
+
+If two documents have more than this number of shingles in common, the shorter one will be blacklisted.
+
+\begin{center}\Maro{-m|-{-}max}
+\begin{verbatim}
+-m INTEGER | --max=INTEGER
+\end{verbatim}
+\end{center}
+
+A shingle occurring more than the number of times specified here will not be used at all for shingling.
+Because such shingles lead to a high number of doc-doc pairs being created, this must be considered a very effective performance hack which lowers the accuracy of the shingling method, however.
+
+\begin{center}\Maro{-f|-{-}full}
+\begin{verbatim}
+-f | --full
+\end{verbatim}
+\end{center}
+
+Write separate files which contain the doc-doc pairs and their calculated shingle overlap (= similarity).
+The files will also be gzipped if \texttt{-g} is set.
+
+\subsection{\texttt{tecl}}
+\label{sec:tecl}
+
+\texttt{tecl} erases or extracts documents with IDs specifiable in a blacklist or whitelist file from \texttt{texrex} corpus files, creating a ``clean'' output.
+
+\begin{center}\Maro{-b|-{-}black}
+\begin{verbatim}
+-b FILE | --black=FILE
+\end{verbatim}
+\end{center}
+
+Specify the blacklist files created by \texttt{tender}, possibly using wildcards.
+If wildcards are used, the filename \textbf{must} be put in quotes.
+
+\begin{center}\Maro{-i|-{-}input}
+\begin{verbatim}
+-i FILE | --input=FILE
+\end{verbatim}
+\end{center}
+
+Specify the corpus input files created by \texttt{texrex}, possibly using wildcards.
+Documents matching a blacklisted item will not be in the output.
+If wildcards are used, the filename \textbf{must} be put in quotes.
+
+\begin{center}\Maro{-o|-{-}output}
+\begin{verbatim}
+-o FILE | --output=FILE
+\end{verbatim}
+\end{center}
+
+Specify the output file name prefix (\textbf{no} wildcards).
+
+\begin{center}\Maro{-u|-{-}uniqids}
+\begin{verbatim}
+-u | --uniqids
+\end{verbatim}
+\end{center}
+
+Set this to make IDs unique by removing documents if their ID was already encountered.
+Technically, this will cause document IDs of good documents to be added to the blacklist once they have been written, such that they will be considered bad documents later.
+Notice that in releases from 2014 or later, document IDs are MD5 hashes of the URL (32 8-bit characters, 256 bits) plus a random suffix (a 16-bit integer in hexadecimal encoding), resulting in a 36 character hexadecimal string.
+Thus, even if you re-crawl URLs, documents virtually never have the same ID.
+But it's safer to use this option if you want to make absolutely sure that you never have identical IDs in your corpus.
+\textbf{Incompatible with \texttt{-w|--white} option.}
+
+\begin{center}\Maro{-s|-{-}split}
+\begin{verbatim}
+-s INTEGER | --split=INTEGER
+\end{verbatim}
+\end{center}
+
+Split the output files after INTEGER documents.
+
+\begin{center}\Maro{-g|-{-}gzip}
+\begin{verbatim}
+-g | --gzip
+\end{verbatim}
+\end{center}
+
+Use gzip compression for output files.
+
+\begin{center}\Maro{-w|-{-}white}
+\begin{verbatim}
+-w | --white
+\end{verbatim}
+\end{center}
+
+Interpret the blacklist as a whitelist.
+\textbf{Incompatible with \texttt{-u|--uniqids} option.}
+
+\subsection{Cyclic fingerprint overlap calculation}
+\label{sec:cyclicshingle}
+
+If you have a lot of shingles, it is more efficient to split the process into cycles and keep merging the results, using \texttt{tender}'s \texttt{-b|-{-}black} option.
+The optimal strategy depends heavily on your system and has to be determined experimentally.
+Since \texttt{tender} uses a lot of memory in certain configurations, you might actually be \textbf{forced} to experiment with cyclic overlap calculation.
+
+The method goes like this:
+First, you use \texttt{tender} several times to create a blacklist file from only a selection of all available shingle files at a time.
+Later, you run it again, specifying the previously created blacklists with the \texttt{-b} or \texttt{-{-}black} option as well as \textbf{all} corresponding shingle files as input.
+All files which are already blacklisted will be ignored (=~considered to be removed already) in the subsequent runs.
+In the end, use all blacklist files when you clean the corpus with \texttt{tecl} (Section~\ref{sec:tecl}).
+A simple session could look like this (using defaults where possible):
+
+{\footnotesize
+\begin{enumerate}
+  \item \texttt{tender -i shingles1.gz -o blacklist1 -g}\\[1ex]
+    (This creates \texttt{blacklist1.gz}.)
+  \item \texttt{tender -i shingles2.gz -o blacklist2 -g}\\[1ex]
+    (This creates \texttt{blacklist2.gz}.)
+  \item \texttt{tender -i "shingles*.gz" -o blacklist3 -b "blacklist*.gz" -g}\\[1ex]
+    (This creates \texttt{blacklist3.gz}.)
+  \item \texttt{tecl -b "blacklist*.gz" -i "corpus*.xml.gz" -o cleancorpus}\\[1ex]
+    (Note: For the final cleaning, you need to specify \textbf{all} blacklist files!
+    \texttt{blacklist3.gz} is just an addendum to the previously created blacklists.)
+\end{enumerate}
+}
+
+\section{Additional normalization tools}
+
+\subsection{\texttt{HyDRA}}
+
+\texttt{HyDRA} removes hard-hyphenation (like \textit{hy- phenation}) with high accuracy based on unigram frequencies.
+It does not rely on information about line endings, since they are usually not available in stripped web documents.
+Please use \texttt{hydra -h} to get help.
+You need language-specific unigram lists, which might be available from the web site.
+
+\subsection{\texttt{rofl}}
+
+\texttt{rofl} fixes run-together sentences (like \textit{I am a sentence.This sequence is glued together.}) with high accuracy based on word lists.
+Please use \texttt{rofl -h} to get help.
+You need language-specific word lists, which might be available from the web site.
+
+\bibliographystyle{abbrvnat} 
+\bibliography{cow}
+
+\end{document}

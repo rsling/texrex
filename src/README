@@ -1,0 +1,55 @@
+
+  texrex-behindthecow - Web page cleaning tool
+  README of 2015/10/10
+  Roland Schäfer <roland.schaefer@fu-berlin.de>
+  http://texrex.sourceforge.net/
+
+
+texrex is a free software for processing data files from crawls and
+turning them into a corpus of web documents. Most new developments
+in texrex-behindthecow have maintenance character, others make
+it possible to process CommonCrawl or similar data sets.
+
+It performs the following processing steps:
+
+ -  read ARC of WARC files document by document
+ -  filter perfect duplicates using a Bloom filter
+ -  strip HTML, scripts, stylesheets
+ -  extract meta information from crawl headers
+ -  convert all encodings to UTF-8 (using ICU), optionally treating all
+    ISO-8859-1 input as Win-1252
+ -  convert all HTML entities to appropriate codepoints (including rogue
+    Win-1252)
+ -  normalize to NFC
+ -  heuristically fix broken encodings/entities
+ -  detect, remove, and/or annotate boilerplate blocks using a
+    Multi-Layer Perceptron trained on 38 features
+ -  assess the text quality of the documents by looking at frequencies
+    of short frequent word (requires language-specific models)
+ -  identify languages (using the text quality mechanism)
+ -  create w-shingling document fingerprints and filter near-duplicate
+    documents (additional tools tender and tecl included)
+ -  perform in-document deduplication (remove repeated paragraphs,
+    insert a backreference to first copy)
+ -  perform additional normalization (e.g., reduce diverse Unicode
+    dashes and hyphens to the basic codepoint)
+ -  write standard-compliant XML output
+ -  add server IP geolocation meta information (country, region, city –
+    based on GeoLite by MaxMind)
+
+Technologically, the main features of texrex are:
+
+ -  written in FreePascal (Object FPC mode)
+ -  licensed under FPC's Modified LGPL
+ -  uses multi-threading for single-machine parallelization
+ -  uses simple INI files to configure processing jobs
+ -  can be run in the background, using a simple IPC client to control
+    the process
+ -  depends only on two additional libraries: ICU and FANN
+    (additional tool to train networks included: tenet)
+
+Additional tools included (since texrex-neuedimensionen):
+
+ -  HyDRA - hard-hyphenation remover 
+ -  rofl - fixer for run-together sentences
+ 

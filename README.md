@@ -1,9 +1,8 @@
 # texrex web page cleaning system
 
-### Web document cleaning/crawl file processing tools
-### written by Roland Schäfer for the COW project.
+**Web document cleaning/crawl file processing tools written by Roland Schäfer for the COW project.**
 
-### Current milestone: texrex-behindthecow (2015)
+**Current milestone: texrex-behindthecow (2015)**
 
 
 texrex is a free software for processing data files from crawls and turn them into a corpus of web documents.

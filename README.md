@@ -1,7 +1,7 @@
 # texrex web page cleaning system
 
-## Web document cleaning/crawl file processing tools
-## written by Roland Schäfer for the COW project.
+### Web document cleaning/crawl file processing tools
+### written by Roland Schäfer for the COW project.
 
 ### Current milestone: texrex-behindthecow (2015)
 
@@ -53,5 +53,7 @@ Papers to read about texrex and related technology:
 - http://rolandschaefer.net/?p=70
 
 
-### This repo was moved to GitHub from SourceForge r. 662 on May 1, 2016.
-### For reference: https://sourceforge.net/p/texrex/code/HEAD/tree/
+This repo was moved to GitHub from SourceForge r. 662 on May 1, 2016.
+For reference:
+
+https://sourceforge.net/p/texrex/code/HEAD/tree/

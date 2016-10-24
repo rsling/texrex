@@ -1,7 +1,7 @@
 [clean]
 units = trdata trfile trreader trhtmlstripper icudet \
   icuconv icuwrappers icunorm trsecondpass trcharsetconverter \
-  trentityconverters fann icuregex icutypes icuutils trdata \
+  trentityconverters fann icuregex icutypes icuutils \
   trdocumentprocessor trqueues trutilities trtexrex trdeboilerplater \
   trsimpledocumentfilter trunicodeletterrangetokenizer trshingler \
   trfrequencyprofiler trtypefrequencies trbloom trtextassessment \
@@ -29,7 +29,7 @@ programs = texrex texcomm tenet tender tecl arcxi rofl hydra cowsplit \
 
 units = trdata trfile trreader trhtmlstripper icudet \
   icuconv icuwrappers icunorm trsecondpass trcharsetconverter \
-  trentityconverters fann icuregex icutypes icuutils trdata \
+  trentityconverters fann icuregex icutypes icuutils \
   trdocumentprocessor trqueues trutilities trtexrex trdeboilerplater \
   trsimpledocumentfilter trunicodeletterrangetokenizer trshingler \
   trbloom trtextassessment trutf8validator trworker trnormalizer \

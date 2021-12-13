@@ -1,3 +1,11 @@
+# Note: texrex is no longer maintained, will re-emerge as PyRex
+
+As of December 2021, I've officially dropped support/maintenance for texrex. It's unnecessarily complex due to some quirks of working with Pascal in the 2020s. Also, as much as I like Pascal and the FreePascal compiler, the FreePascal ecosystem is outright annoying. Instead, I'll be working on [PyRex](https://github.com/rsling/PyRex), a modular Python 3 reimplementation of texrex with a focus on analysing CommonCrawl data. If things go well, NLP modules for German and English (such as currently available in [COWTek](https://github.com/rsling/cow)) might be added.
+
+The ClaraX crawler will not be reimplemented in Python, but I'm planning to include some bias-removal tools in PyRex if CommonCrawl data allows for a good guess of at least some properties of the web graph.
+
+The following is the old texrex README…
+
 # texrex web page cleaning system
 
 **Web document cleaning/crawl file processing tools written by Roland Schäfer for the COW project.**
